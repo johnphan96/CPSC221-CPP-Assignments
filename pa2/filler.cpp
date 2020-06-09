@@ -28,69 +28,121 @@ animation filler::fillStripeBFS(PNG& img, int x, int y, HSLAPixel fillColor,
  * @todo your turn!
  */
 
-animation filler::fillBorderDFS(PNG& img, int x, int y,
-                                    HSLAPixel borderColor, double tolerance, int frameFreq)
+animation filler::fillBorderDFS(PNG& img, int x, int y, HSLAPixel borderColor, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! 
-     */
-    return animation();
+    borderColorPicker bcp = borderColorPicker(borderColor, img, tolerance, *(img.getPixel(x, y)));
+    return fill<Stack>(img, x, y, bcp, tolerance, frameFreq);
 }
 
 /* Given implementation of a DFS conwa fill. */
 animation filler::fillConwayDFS(PNG& img, int x, int y, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! 
-     */
-    return animation();
+    conwayColorPicker ccp = conwayColorPicker();
+    return fill<Stack>(img, x, y, ccp, tolerance, frameFreq);
 }
-animation filler::fillGridBFS(PNG& img, int x, int y, HSLAPixel fillColor,
-                                int spacing, double tolerance, int frameFreq)
+
+
+animation filler::fillGridBFS(PNG& img, int x, int y, HSLAPixel fillColor, int spacing, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! 
-     */
-    return animation();
+    gridColorPicker gcp = gridColorPicker(fillColor, spacing);
+    return fill<Queue>(img, x, y, gcp, tolerance, frameFreq);
 }
 animation filler::fillGridDFS(PNG& img, int x, int y, HSLAPixel fillColor,
                                 int spacing, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! 
-     */
-    return animation();
+    gridColorPicker gcp = gridColorPicker(fillColor, spacing);
+    return fill<Stack>(img, x, y, gcp, tolerance, frameFreq);
 }
 
 animation filler::fillBorderBFS(PNG& img, int x, int y,
                                     HSLAPixel borderColor, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! You should replace the following line with a
-     */
-    return animation();
+    borderColorPicker bcp = borderColorPicker(borderColor, img, tolerance, *(img.getPixel(x, y)));
+    return fill<Queue>(img, x, y, bcp, tolerance, frameFreq);
 }
 
 /* Given implementation of a BFS conwa fill. */
 animation filler::fillConwayBFS(PNG& img, int x, int y, double tolerance, int frameFreq)
-{    /**
-     * @todo Your code here! You should replace the following line with a
-     */
-    return animation();
+{    
+    conwayColorPicker ccp = conwayColorPicker();
+    return fill<Queue>(img, x, y, ccp, tolerance, frameFreq);
 }
 
 template <template <class T> class OrderingStructure>
-animation filler::fill(PNG& img, int x, int y, colorPicker& fillColor,
-                       double tolerance, int frameFreq)
+animation filler::fill(PNG &img, int x, int y, colorPicker &fillColor, double tolerance, int frameFreq)
 {
-    /**
-     * @todo Your code here! 
-     * NOTE: this'll be a long one!
-     */
-    return animation();
-} 
+    OrderingStructure<HSLAXYPixel> os;
+    int filled = 0;
+    animation anim;
+    vector<vector<bool>> visited;
 
-    /** FOR ABOVE fill
+    // initialise 2D array of visited pixels
+    visited.resize(img.height());
+    for (unsigned int i = 0; i < img.height(); i++) {
+        visited[i].resize(img.width());
+        for(unsigned int j = 0; j < img.width(); j++) {
+            visited[i][j] = false;
+        }
+    }
+    // get center pixel
+    HSLAXYPixel center(img.getPixel(x,y), x, y);
+    HSLAPixel ctr = *img.getPixel(x, y);
+
+    //query center pixel
+    query(HSLAXYPixel(img.getPixel(x, y), x, y),  ctr, tolerance, visited, os);
+    
+
+    // initialize neighbours to visit
+    vector<int> x_neighbours;
+    vector<int> y_neighbours;
+    x_neighbours.push_back(0);
+    x_neighbours.push_back(1);
+    x_neighbours.push_back(0);
+    x_neighbours.push_back(-1);
+
+    y_neighbours.push_back(1);
+    y_neighbours.push_back(0);
+    y_neighbours.push_back(-1);
+    y_neighbours.push_back(0);
+
+    while (!os.isEmpty()) {
+        HSLAXYPixel currPixel = os.remove();
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nextX = currPixel.x + x_neighbours[i];
+            int nextY = currPixel.y + y_neighbours[i];
+            if ((nextX >= 0 && nextX < (int)img.width()) && (nextY >= 0 && nextY < (int)img.height()))
+            {
+                query(HSLAXYPixel(img.getPixel(nextX, nextY), nextX, nextY), ctr, tolerance, visited, os);
+            }
+        }
+
+        *currPixel.pxptr = fillColor(currPixel.x, currPixel.y);
+        filled++;
+
+        // update frame
+        if (filled % frameFreq == 0) {
+            anim.addFrame(img);
+        }
+    }
+    anim.addFrame(img);
+    return anim;
+}
+
+void filler::query(HSLAXYPixel currPixel, HSLAPixel center, double tolerance, vector<vector<bool>> &visited, OrderingStructure<HSLAXYPixel> &os)
+{
+    if (!visited[currPixel.y][currPixel.x])
+    {
+        visited[currPixel.y][currPixel.x] = true;
+        if (currPixel.pxptr->dist(center) <= tolerance)
+        {
+            os.add(currPixel);
+        }
+    }
+}
+
+/** FOR ABOVE fill
      * @todo You need to implement this function!
      *
      * This is the basic description of a flood-fill algorithm: Every fill
@@ -103,8 +155,8 @@ animation filler::fill(PNG& img, int x, int y, colorPicker& fillColor,
      * (the way you mark it is a design decision you'll make yourself).
      * We have a choice to either change the color, if appropriate, when we
      * add the point to the OS, or when we take it off. In our test cases,
-     * we have assumed that you will change the color when a point is added
-     * to the structure. 
+     * we have assumed that you will change the color when a point is REMOVED
+     * from the structure.
      *
      * Until the structure is empty, you do the following:
      *
@@ -112,10 +164,9 @@ animation filler::fill(PNG& img, int x, int y, colorPicker& fillColor,
      *
      *        1.    add its unprocessed neighbors whose color values are 
      *              within (or equal to) tolerance distance from the center, 
-     *              to the ordering structure.
+     *              to the ordering structure, marking each as processed.
      *        2.    use the colorPicker to set the new color of the point.
-     *        3.    mark the point as processed.
-     *        4.    if it is an appropriate frame, send the current PNG to the
+     *        3.    if it is an appropriate frame, send the current PNG to the
      *              animation (as described below).
      *
      * 2.     When implementing your breadth-first-search and

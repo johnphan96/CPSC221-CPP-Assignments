@@ -26,7 +26,8 @@ HSLAPixel borderColorPicker::operator()(int x, int y) {
    for(int a = -3; a <= 3; a++) {
       for(int b = -3; b <= 3; b++) {
          euclidDist = a*a + b*b;
-         if(euclidDist <= 9 && (!isInFillRegion(x+a, y+b) || !isInImage(x+a, y+b))) {
+         if (euclidDist <= 9 && (!isInImage(x + a, y + b) || !isInFillRegion(x + a, y + b)))
+         {
             return color;
          }
       }

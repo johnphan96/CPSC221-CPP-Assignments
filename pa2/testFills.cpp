@@ -73,6 +73,7 @@ PNG testColorPicker(colorPicker& picker)
     return img;
 }
 
+
 /*
 * given as an example
 */
@@ -139,16 +140,6 @@ TEST_CASE("colorPicker::basic border","[weight=1][part=colorPicker]"){
     REQUIRE(result == expected);
 }
 
-TEST_CASE("colorPicker::basic grid","[weight=1][part=colorPicker]"){
-    HSLAPixel px1;
-    px1.h = 120;
-    px1.s = 1.0; px1.l = 0.25;
-    gridColorPicker gridPicker(px1, FUNCTORTESTGRIDSPACING);
-
-    PNG result = testColorPicker(gridPicker);
-    result.writeToFile("images/gridColorPickerTest.png");
-
-}
 
 TEST_CASE("fill::basic border bfs","[weight=1][part=fill]"){
     PNG img;

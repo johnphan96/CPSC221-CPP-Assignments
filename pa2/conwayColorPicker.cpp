@@ -27,9 +27,40 @@ HSLAPixel conwayColorPicker::operator()(int x, int y)
 {
     PNGmap::iterator stored;
     vector<PNGmap::iterator> neighbours;
-    HSLAPixel deadCell = HSLAPixel(0, 0, 1, 1);
+    
 
-    return deadCell;
+    int deadNeighbourCount = 0;
+
+    for (int i = x - 1; i <= x + 1; i++)
+    {
+        for (int j = y - 1; j <= y + 1; j++)
+        {
+            if (i == x && j == y)
+            {
+                continue;
+            }
+            pair<int, int> p = make_pair(i, j);
+            
+            if (prev.find(p) != prev.end()) {
+                neighbours.push_back(prev.find(p));
+            }
+        }
+    }
+
+    for (int i = 0; i < (int) neighbours.size(); i++)
+    {
+        HSLAPixel pixel = neighbours[i]->second;
+        if (pixel.l == 1)
+        {
+            deadNeighbourCount++;
+        }
+    }
+
+    HSLAPixel retPixel = nextColor(deadNeighbourCount);
+
+    prev[pair<int, int>(x, y)] = retPixel;
+
+    return retPixel;
 }
 
 

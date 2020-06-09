@@ -23,6 +23,8 @@ using namespace cs221util;
  * fills on images. 
  *
  */
+
+
 namespace filler
 {
         /**
@@ -183,7 +185,9 @@ namespace filler
         animation fillGridDFS(PNG& img, int x, int y, HSLAPixel fillColor,
                                 int spacing, double tolerance, int frameFreq);
 
-    /**
+        
+
+        /**
      * Filling function: a general helper that should be invoked by
      * ALL of the public fill functions parameterized by the appropriate 
      * color picker for that type of fill.
@@ -200,22 +204,31 @@ namespace filler
      *  pixels is filled.
      * @return An animation that shows the fill progressing over the image.
      */
-    template <template <class T> class OrderingStructure>
-    animation fill(PNG& img, int x, int y, colorPicker& fillColor,
-                   double tolerance, int frameFreq);
+        template <template <class T> class OrderingStructure>
+        animation fill(PNG &img, int x, int y, colorPicker &fillColor, double tolerance, int frameFreq);
+
+
+        class HSLAXYPixel
+        {
+        public:
+                HSLAPixel *pxptr;
+                int x;
+                int y;
+
+                HSLAXYPixel(){}
+
+                HSLAXYPixel(HSLAPixel *px, int xi, int yi)
+                {
+                        pxptr = px;
+                        x = xi;
+                        y = yi;
+                }
+        };
+
+        void query(HSLAXYPixel currPixel, HSLAPixel center, double tolerance, vector<vector<bool>> &visited, OrderingStructure<HSLAXYPixel> &os);
 }
 
-class HSLAXYPixel {
-    public:
-        HSLAPixel * pxptr;
-        int x;
-        int y;
 
-    HSLAXYPixel(HSLAPixel * px, int xi, int yi) {
-        pxptr = px;
-        x = xi;
-        y = yi;
-    }
-};
+
 #include "filler.cpp"
 #endif
